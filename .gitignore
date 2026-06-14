@@ -1,0 +1,44 @@
+# ── Java / Maven ──
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.war
+*.class
+*.iml
+
+# ── Node / Vite ──
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ── Environment & Secrets ──
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials*
+application-local.yml
+application-local.properties
+
+# ── IDE & Editor ──
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Playwright MCP ──
+.playwright-mcp/
+
+# ── Logs ──
+logs/
+*.log

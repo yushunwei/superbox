@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superbox — 个人高效工作台</title>
+<style>
+/* ====== CSS Variables & Reset ====== */
+:root {
+  --bg-deep: #0d1117;
+  --bg-primary: #161b22;
+  --bg-secondary: #1c2333;
+  --bg-card: rgba(28, 35, 51, 0.6);
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-card: rgba(255,255,255,0.10);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent: #58a6ff;
+  --accent-dim: rgba(88,166,255,0.15);
+  --green: #3fb950;
+  --green-bg: rgba(63,185,80,0.15);
+  --orange: #d2991d;
+  --orange-bg: rgba(210,153,29,0.15);
+  --red: #f85149;
+  --red-bg: rgba(248,81,73,0.15);
+  --purple: #a371f7;
+  --purple-bg: rgba(163,113,247,0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.25);
+  --shadow-elevated: 0 4px 12px rgba(0,0,0,0.5), 0 16px 48px rgba(0,0,0,0.35);
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100vh;
+}
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:3px; }
+
+/* ====== App Shell ====== */
+#app { display:flex; height:100vh; }
+
+/* ====== Page Switcher Sidebar ====== */
+.page-nav {
+  width: 56px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 4px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.page-nav__logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff;
+  margin-bottom: 20px;
+}
+.page-nav__item {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+}
+.page-nav__item:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.page-nav__item.active { color: var(--accent); background: var(--accent-dim); }
+.page-nav__item.active::before {
+  content: ''; position: absolute; left: -12px;
+  width: 3px; height: 20px; background: var(--accent); border-radius: 3px 0 0 3px;
+}
+.page-nav__item .badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  background: var(--red); color:#fff; font-size:10px;
+  display: flex; align-items:center; justify-content:center; padding:0 4px;
+}
+
+/* ====== Main Content ====== */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+.page { display:none; height:100%; }
+.page.active { display:flex; flex-direction:column; }
+
+/* ====== Top Bar ====== */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 24px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 56px;
+  flex-shrink: 0;
+}
+.topbar__back {
+  color: var(--text-muted); cursor: pointer; font-size: 14px;
+  padding: 6px 12px; border-radius: var(--radius-sm); border: none;
+  background: transparent; transition: var(--transition-fast);
+  display: flex; align-items: center; gap: 6px;
+}
+.topbar__back:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.topbar__title { font-size: 15px; font-weight: 600; color: var(--text-primary); flex:1; }
+.topbar__actions { display:flex; gap:8px; align-items:center; }
+
+/* ====== PAGE 1: Home ====== */
+.home-page { padding: 40px 48px; max-width: 900px; margin: 0 auto; width: 100%; }
+.home-header { text-align: center; margin-bottom: 40px; }
+.home-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--text-primary), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.home-header p { color: var(--text-muted); font-size: 14px; }
+
+/* Search */
+.search-wrap { position: relative; margin-bottom: 28px; }
+.search-input {
+  width: 100%; padding: 16px 20px 16px 48px; font-size: 15px;
+  background: var(--bg-secondary); border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg); color: var(--text-primary);
+  outline: none; transition: var(--transition-fast);
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.search-icon {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 18px; color: var(--text-muted);
+}
+.search-hint {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 11px; color: var(--text-muted); background: rgba(255,255,255,0.06);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+/* Quick Capture */
+.quick-capture {
+  display: flex; gap: 8px; margin-bottom: 36px;
+  background: var(--bg-card); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-card); border-radius: var(--radius-md);
+  padding: 8px; transition: var(--transition-smooth);
+}
+.quick-capture:focus-within { border-color: var(--accent); box-shadow: var(--shadow-card); }
+.quick-capture__input {
+  flex:1; padding: 10px 14px; background: transparent; border: none;
+  color: var(--text-primary); font-size: 14px; outline: none;
+}
+.quick-capture__input::placeholder { color: var(--text-muted); }
+.quick-capture__btn {
+  padding: 8px 16px; border-radius: var(--radius-sm); border: none;
+  font-size: 13px; cursor: pointer; transition: var(--transition-fast);
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn-task { background: var(--accent-dim); color: var(--accent); }
+.btn-task:hover { background: rgba(88,166,255,0.25); }
+.btn-knowledge { background: var(--purple-bg); color: var(--purple); }
+.btn-knowledge:hover { background: rgba(163,113,247,0.25); }
+
+/* App Cards Grid */
+.section-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; }
+.app-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 14px; margin-bottom: 36px; }
+.app-card {
+  background: var(--bg-card); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-card); border-radius: var(--radius-lg);
+  padding: 24px; cursor: pointer; transition: var(--transition-smooth);
+  position: relative; overflow: hidden;
+}
+.app-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: var(--shadow-elevated);
+}
+.app-card::after {
+  content: ''; position: absolute; top: -50%; right: -50%;
+  width: 120px; height: 120px; border-radius: 50%;
+  transition: var(--transition-smooth);
+}
+.app-card--task::after { background: radial-gradient(circle, rgba(88,166,255,0.08) 0%, transparent 70%); }
+.app-card--knowledge::after { background: radial-gradient(circle, rgba(163,113,247,0.08) 0%, transparent 70%); }
+.app-card--ai::after { background: radial-gradient(circle, rgba(63,185,80,0.08) 0%, transparent 70%); }
+.app-card__icon {
+  width: 44px; height: 44px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 14px; position: relative; z-index: 1;
+}
+.app-card--task .app-card__icon { background: var(--accent-dim); }
+.app-card--knowledge .app-card__icon { background: var(--purple-bg); }
+.app-card--ai .app-card__icon { background: var(--green-bg); }
+.app-card__title { font-size: 16px; font-weight: 600; margin-bottom: 4px; position: relative; z-index: 1; }
+.app-card__desc { font-size: 13px; color: var(--text-muted); position: relative; z-index: 1; }
+.app-card__stat {
+  margin-top: 14px; position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+  background: rgba(255,255,255,0.04); padding: 4px 10px; border-radius: 20px;
+}
+.app-card__stat .count { font-weight: 700; }
+.app-card--task .count { color: var(--accent); }
+.app-card--knowledge .count { color: var(--purple); }
+
+/* Recent Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before {
+  content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px;
+  width: 1px; background: var(--border-card);
+}
+.timeline-item {
+  position: relative; padding: 8px 0 8px 20px;
+  font-size: 13px; color: var(--text-secondary); cursor: pointer;
+  transition: var(--transition-fast); border-radius: var(--radius-sm);
+}
+.timeline-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.02); }
+.timeline-item::before {
+  content: ''; position: absolute; left: -20px; top: 14px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--border-card); border: 2px solid var(--bg-primary);
+}
+.timeline-item--task::before { background: var(--accent); }
+.timeline-item--knowledge::before { background: var(--purple); }
+.timeline-item--chat::before { background: var(--green); }
+.timeline-item__time { font-size: 11px; color: var(--text-muted); margin-left: 8px; }
+
+/* ====== PAGE 2: Task Manager ====== */
+.task-page { display:flex; flex-direction:column; height:100%; }
+.task-toolbar {
+  display:flex; gap:12px; padding:12px 24px;
+  background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle);
+  align-items: center; flex-shrink: 0;
+}
+.view-tabs { display:flex; gap:2px; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding:3px; }
+.view-tab {
+  padding: 6px 14px; border-radius: 6px; border: none; font-size: 13px;
+  cursor: pointer; background: transparent; color: var(--text-muted); transition: var(--transition-fast);
+}
+.view-tab.active { background: var(--accent-dim); color: var(--accent); }
+.filter-bar { margin-left: auto; display: flex; gap: 8px; }
+.filter-select {
+  padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
+  color: var(--text-secondary); cursor: pointer;
+}
+.btn-primary {
+  padding: 8px 18px; background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-size: 13px; cursor: pointer;
+  font-weight: 500; transition: var(--transition-fast); display:flex; align-items:center; gap:6px;
+}
+.btn-primary:hover { background: #4c9ae8; }
+
+/* Kanban */
+.kanban { display:flex; gap:16px; padding:20px 24px; flex:1; overflow-x:auto; }
+.kanban-col {
+  flex:1; min-width:280px; max-width:360px;
+  background: var(--bg-secondary); border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle); display:flex; flex-direction:column;
+}
+.kanban-col__header {
+  padding: 14px 16px; display:flex; align-items:center; gap:8px;
+  font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border-subtle);
+}
+.kanban-col__count { font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.06);
+  padding: 1px 8px; border-radius: 10px; }
+.kanban-col__body { padding:10px; flex:1; display:flex; flex-direction:column; gap:8px; overflow-y:auto; }
+.task-card {
+  background: var(--bg-card); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-card); border-radius: var(--radius-md);
+  padding: 14px; cursor: pointer; transition: var(--transition-fast);
+}
+.task-card:hover { border-color: rgba(255,255,255,0.18); box-shadow: var(--shadow-card); }
+.task-card__title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.task-card__meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+.priority-high { background: var(--red); }
+.priority-medium { background: var(--orange); }
+.priority-low { background: var(--green); }
+.tag-chip {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: var(--text-muted);
+}
+.due-date { font-size: 11px; color: var(--text-muted); }
+.due-date--overdue { color: var(--red); }
+
+/* ====== PAGE 3: Knowledge Base ====== */
+.knowledge-page { display:flex; flex:1; overflow:hidden; }
+.folder-panel {
+  width: 240px; flex-shrink:0; background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle); display:flex; flex-direction:column;
+  overflow-y:auto; padding: 8px;
+}
+.folder-panel__header {
+  padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted); display:flex;
+  align-items:center; justify-content:space-between;
+}
+.folder-tree { padding: 4px 0; }
+.folder-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: 13px;
+  color: var(--text-secondary); transition: var(--transition-fast);
+}
+.folder-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.folder-item.active { background: var(--accent-dim); color: var(--accent); }
+.folder-item__icon { font-size: 15px; flex-shrink: 0; }
+.folder-item__count { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+.folder-item--child { padding-left: 36px; }
+.knowledge-content { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.knowledge-toolbar {
+  padding: 12px 20px; display:flex; gap:10px; align-items:center;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.knowledge-list { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:10px; }
+.knowledge-card {
+  background: var(--bg-card); border: 1px solid var(--border-card);
+  border-radius: var(--radius-md); padding: 16px 18px; cursor: pointer;
+  transition: var(--transition-fast);
+}
+.knowledge-card:hover { border-color: rgba(255,255,255,0.18); }
+.knowledge-card__title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.knowledge-card__snippet { font-size: 12px; color: var(--text-muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.knowledge-card__meta { display:flex; align-items:center; gap:8px; margin-top: 8px; font-size: 11px; color: var(--text-muted); }
+.source-icon { display:flex; align-items:center; gap:4px; }
+
+/* Upload Zone */
+.upload-zone {
+  margin: 20px; padding: 40px; text-align: center;
+  border: 2px dashed var(--border-card); border-radius: var(--radius-lg);
+  transition: var(--transition-fast); cursor: pointer;
+}
+.upload-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+.upload-zone__icon { font-size: 40px; margin-bottom: 12px; }
+.upload-zone__text { font-size: 14px; color: var(--text-secondary); }
+.upload-zone__hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* ====== PAGE 4: AI Chat ====== */
+.chat-page { display:flex; flex:1; overflow:hidden; }
+.chat-sidebar {
+  width: 240px; flex-shrink:0; background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle); display:flex; flex-direction:column;
+}
+.chat-sidebar__header {
+  padding: 14px 16px; border-bottom: 1px solid var(--border-subtle);
+}
+.btn-new-chat {
+  width:100%; padding: 8px 14px; border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary);
+  font-size: 13px; cursor: pointer; display:flex; align-items:center;
+  gap: 8px; justify-content: center; transition: var(--transition-fast);
+}
+.btn-new-chat:hover { border-color: var(--accent); color: var(--accent); }
+.chat-conv-list { flex:1; overflow-y:auto; padding: 6px; }
+.chat-conv-item {
+  padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: var(--transition-fast); font-size: 13px;
+}
+.chat-conv-item:hover { background: rgba(255,255,255,0.04); }
+.chat-conv-item.active { background: var(--accent-dim); }
+.chat-conv-item__title { color: var(--text-secondary); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-conv-item__meta { font-size: 11px; color: var(--text-muted); }
+
+.chat-main { flex:1; display:flex; flex-direction: column; overflow:hidden; }
+.chat-main__header {
+  padding: 10px 20px; border-bottom: 1px solid var(--border-subtle);
+  display:flex; align-items:center; gap:12px;
+}
+.model-select {
+  padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
+  color: var(--text-secondary); cursor:pointer; margin-left:auto;
+}
+.chat-messages { flex:1; overflow-y:auto; padding: 24px; display:flex; flex-direction:column; gap:20px; }
+
+/* Chat empty state */
+.chat-empty {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:20px; text-align:center;
+}
+.chat-empty__icon { font-size: 56px; opacity: 0.4; }
+.chat-empty__title { font-size: 20px; font-weight: 600; }
+.chat-empty__desc { font-size: 14px; color: var(--text-muted); max-width: 420px; line-height:1.7; }
+.suggestion-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:500px; margin-top:8px; }
+.suggestion-card {
+  padding: 12px 16px; border: 1px solid var(--border-card);
+  border-radius: var(--radius-md); font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: var(--transition-fast); text-align:left; background: var(--bg-card);
+}
+.suggestion-card:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+
+/* Chat messages */
+.chat-msg { display:flex; gap:12px; max-width: 85%; animation: fadeInUp 0.3s ease; }
+@keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.chat-msg--user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg--assistant { align-self: flex-start; }
+.chat-msg__avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display:flex; align-items:center; justify-content:center; font-size: 14px;
+}
+.chat-msg--user .chat-msg__avatar { background: var(--accent-dim); }
+.chat-msg--assistant .chat-msg__avatar { background: var(--green-bg); }
+.chat-msg__bubble {
+  padding: 12px 16px; border-radius: var(--radius-md);
+  font-size: 14px; line-height: 1.7;
+}
+.chat-msg--user .chat-msg__bubble { background: var(--accent-dim); color: var(--text-primary); border-bottom-right-radius: 4px; }
+.chat-msg--assistant .chat-msg__bubble { background: var(--bg-card); border: 1px solid var(--border-card); border-bottom-left-radius: 4px; }
+
+/* Reasoning Block */
+.reasoning-block {
+  margin-top: 10px; border: 1px solid var(--border-card); border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.02); overflow: hidden;
+}
+.reasoning-block__header {
+  padding: 10px 14px; display:flex; align-items:center; gap:8px;
+  font-size: 12px; color: var(--text-muted); cursor: pointer;
+  user-select: none; transition: var(--transition-fast);
+}
+.reasoning-block__header:hover { background: rgba(255,255,255,0.02); }
+.reasoning-block__spinner {
+  width: 14px; height: 14px; border: 2px solid var(--border-card);
+  border-top-color: var(--purple); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.reasoning-block__body {
+  padding: 10px 14px; font-size: 13px; color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle); line-height: 1.6;
+}
+
+/* Source citation */
+.source-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top: 8px; }
+.source-tag {
+  font-size: 11px; padding: 3px 10px; border-radius: 4px;
+  background: var(--purple-bg); color: var(--purple); cursor: pointer;
+  transition: var(--transition-fast); display:flex; align-items:center; gap:4px;
+}
+.source-tag:hover { background: rgba(163,113,247,0.25); }
+
+/* Chat input */
+.chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border-subtle); background: var(--bg-primary); }
+.chat-input-row { display:flex; gap:10px; align-items:flex-end; }
+.chat-input-row textarea {
+  flex:1; padding: 12px 16px; background: var(--bg-secondary);
+  border: 1px solid var(--border-card); border-radius: var(--radius-md);
+  color: var(--text-primary); font-size: 14px; resize: none; outline: none;
+  font-family: inherit; min-height: 44px; max-height: 120px;
+  transition: var(--transition-fast);
+}
+.chat-input-row textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.chat-input-actions { display:flex; gap:8px; align-items:center; padding-top:10px; }
+.toggle-btn {
+  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-card);
+  font-size: 12px; cursor: pointer; transition: var(--transition-fast);
+  background: transparent; color: var(--text-muted); display:flex; align-items:center; gap:6px;
+}
+.toggle-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text-secondary); }
+.toggle-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.btn-send {
+  padding: 10px 20px; background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-size: 14px; cursor: pointer;
+  transition: var(--transition-fast);
+}
+.btn-send:hover { background: #4c9ae8; }
+.btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Typing cursor */
+.cursor-blink::after {
+  content: '▍'; animation: blink 1s step-end infinite; color: var(--accent);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ====== Utilities ====== */
+.btn-ghost {
+  padding: 6px 12px; border-radius: var(--radius-sm); border: none;
+  background: transparent; color: var(--text-muted); font-size: 13px;
+  cursor: pointer; transition: var(--transition-fast); display:flex; align-items:center; gap:6px;
+}
+.btn-ghost:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.dropdown-arrow { font-size: 10px; }
+.separator { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+.lang-toggle {
+  position: fixed; top: 16px; right: 24px; z-index: 100;
+  padding: 6px 12px; border-radius: 20px; background: var(--bg-card);
+  border: 1px solid var(--border-card); font-size: 12px; cursor: pointer;
+  color: var(--text-secondary); transition: var(--transition-fast);
+}
+.lang-toggle:hover { border-color: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Page Navigator (mini sidebar) -->
+  <nav class="page-nav">
+    <div class="page-nav__logo" title="Superbox">S</div>
+    <div class="page-nav__item active" data-page="home" title="主页">🏠</div>
+    <div class="page-nav__item" data-page="tasks" title="任务管理">
+      📋<span class="badge">3</span>
+    </div>
+    <div class="page-nav__item" data-page="knowledge" title="知识库">📚</div>
+    <div class="page-nav__item" data-page="chat" title="AI 问答">💬</div>
+  </nav>
+
+  <!-- Language Toggle -->
+  <div class="lang-toggle" id="langToggle" title="Switch Language">中 ⇄ EN</div>
+
+  <!-- ====== Main Content Area ====== -->
+  <main class="main-content">
+    <!-------------- PAGE 1: HOME -------------->
+    <div class="page active" id="page-home">
+      <div class="home-page">
+        <div class="home-header">
+          <h1>Superbox</h1>
+          <p>个人高效工作台 — 任务 · 知识 · AI 智能</p>
+        </div>
+
+        <!-- Global Search -->
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" placeholder="搜索任务、知识、或直接提问 AI...">
+          <span class="search-hint">⌘K</span>
+        </div>
+
+        <!-- Quick Capture -->
+        <div class="quick-capture">
+          <input class="quick-capture__input" placeholder="快速捕获：输入内容...">
+          <button class="quick-capture__btn btn-task">📋 新建任务</button>
+          <button class="quick-capture__btn btn-knowledge">📄 录入知识</button>
+        </div>
+
+        <!-- App Cards -->
+        <div class="section-label">我的应用</div>
+        <div class="app-grid">
+          <div class="app-card app-card--task" onclick="switchPage('tasks')">
+            <div class="app-card__icon">📋</div>
+            <div class="app-card__title">任务管理</div>
+            <div class="app-card__desc">跟踪和管理日常任务</div>
+            <div class="app-card__stat"><span class="count">3</span> 个待办</div>
+          </div>
+          <div class="app-card app-card--knowledge" onclick="switchPage('knowledge')">
+            <div class="app-card__icon">📚</div>
+            <div class="app-card__title">知识库</div>
+            <div class="app-card__desc">个人知识管理与检索</div>
+            <div class="app-card__stat"><span class="count">12</span> 条知识</div>
+          </div>
+          <div class="app-card app-card--ai" onclick="switchPage('chat')">
+            <div class="app-card__icon">💬</div>
+            <div class="app-card__title">AI 问答</div>
+            <div class="app-card__desc">基于知识库的智能对话 · 深度推理 · 多模型</div>
+          </div>
+        </div>
+
+        <!-- Recent Timeline -->
+        <div class="section-label">最近动态</div>
+        <div class="timeline">
+          <div class="timeline-item timeline-item--task">
+            更新了任务 <strong>完成项目报告</strong><span class="timeline-item__time">3分钟前</span>
+          </div>
+          <div class="timeline-item timeline-item--chat">
+            AI 对话 <strong>讨论 GNN 模型架构</strong><span class="timeline-item__time">1小时前</span>
+          </div>
+          <div class="timeline-item timeline-item--knowledge">
+            新增知识 <strong>Transformer 注意力机制详解</strong><span class="timeline-item__time">2小时前</span>
+          </div>
+          <div class="timeline-item timeline-item--task">
+            完成了任务 <strong>代码审查：API 重构</strong><span class="timeline-item__time">昨天</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-------------- PAGE 2: TASK MANAGER -------------->
+    <div class="page" id="page-tasks">
+      <div class="topbar">
+        <button class="topbar__back" onclick="switchPage('home')">← 返回主页</button>
+        <span class="topbar__title">任务管理</span>
+        <div class="topbar__actions">
+          <button class="btn-primary">+ 新建任务</button>
+        </div>
+      </div>
+      <div class="task-page">
+        <div class="task-toolbar">
+          <div class="view-tabs">
+            <button class="view-tab active" onclick="switchTaskView('kanban', this)">📋 看板</button>
+            <button class="view-tab" onclick="switchTaskView('list', this)">📄 列表</button>
+          </div>
+          <div class="filter-bar">
+            <select class="filter-select"><option>全部状态</option><option>待办</option><option>进行中</option><option>已完成</option></select>
+            <select class="filter-select"><option>全部优先级</option><option>高</option><option>中</option><option>低</option></select>
+          </div>
+        </div>
+        <!-- Kanban View -->
+        <div class="kanban" id="kanban-view">
+          <div class="kanban-col">
+            <div class="kanban-col__header">⏳ 待办 <span class="kanban-col__count">3</span></div>
+            <div class="kanban-col__body">
+              <div class="task-card" draggable="true">
+                <div class="task-card__title">完成项目需求文档</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-high"></span>
+                  <span class="tag-chip">项目A</span>
+                  <span class="due-date due-date--overdue">📅 6/10 过期</span>
+                </div>
+              </div>
+              <div class="task-card" draggable="true">
+                <div class="task-card__title">设计知识库数据模型</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-medium"></span>
+                  <span class="tag-chip">技术</span>
+                  <span class="due-date">📅 6/15</span>
+                </div>
+              </div>
+              <div class="task-card" draggable="true">
+                <div class="task-card__title">整理 AI 问答 Prompt 模板</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-low"></span>
+                  <span class="tag-chip">AI</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col__header">🔄 进行中 <span class="kanban-col__count">2</span></div>
+            <div class="kanban-col__body">
+              <div class="task-card">
+                <div class="task-card__title">实现文件上传解析服务</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-high"></span>
+                  <span class="tag-chip">后端</span>
+                  <span class="due-date">📅 6/18</span>
+                </div>
+              </div>
+              <div class="task-card">
+                <div class="task-card__title">前端主页 UI 开发</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-medium"></span>
+                  <span class="tag-chip">前端</span>
+                  <span class="due-date">📅 6/20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col__header">✅ 已完成 <span class="kanban-col__count">4</span></div>
+            <div class="kanban-col__body">
+              <div class="task-card">
+                <div class="task-card__title">搭建项目脚手架</div>
+                <div class="task-card__meta">
+                  <span class="priority-dot priority-medium"></span>
+                  <span class="tag-chip">基础设施</span>
+                  <span class="due-date">✅ 6/8</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- List View (hidden by default) -->
+        <div class="kanban" id="list-view" style="display:none;flex-direction:column;gap:4px;">
+          <div class="task-card" style="display:flex;align-items:center;gap:24px;">
+            <input type="checkbox" style="accent-color:var(--accent)">
+            <span style="flex:1;font-weight:500">完成项目需求文档</span>
+            <span class="tag-chip">待办</span>
+            <span class="priority-dot priority-high"></span>
+            <span class="tag-chip">项目A</span>
+            <span class="due-date due-date--overdue">6/10</span>
+          </div>
+          <div class="task-card" style="display:flex;align-items:center;gap:24px;">
+            <input type="checkbox" style="accent-color:var(--accent)">
+            <span style="flex:1;font-weight:500">实现文件上传解析服务</span>
+            <span class="tag-chip">进行中</span>
+            <span class="priority-dot priority-high"></span>
+            <span class="tag-chip">后端</span>
+            <span class="due-date">6/18</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-------------- PAGE 3: KNOWLEDGE BASE -------------->
+    <div class="page" id="page-knowledge">
+      <div class="topbar">
+        <button class="topbar__back" onclick="switchPage('home')">← 返回主页</button>
+        <span class="topbar__title">知识库</span>
+        <div class="topbar__actions">
+          <button class="btn-ghost" onclick="showUpload()">📤 上传文件</button>
+          <button class="btn-primary">+ 手工录入</button>
+        </div>
+      </div>
+      <div class="knowledge-page">
+        <!-- Folder Tree -->
+        <div class="folder-panel">
+          <div class="folder-panel__header">
+            知识目录
+            <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px">+</button>
+          </div>
+          <div class="folder-tree">
+            <div class="folder-item active">
+              <span class="folder-item__icon">📁</span> 全部知识
+              <span class="folder-item__count">12</span>
+            </div>
+            <div class="folder-item">
+              <span class="folder-item__icon">📁</span> 技术
+              <span class="folder-item__count">7</span>
+            </div>
+            <div class="folder-item folder-item--child">
+              <span class="folder-item__icon">📁</span> 机器学习
+              <span class="folder-item__count">4</span>
+            </div>
+            <div class="folder-item folder-item--child">
+              <span class="folder-item__icon">📁</span> 后端开发
+              <span class="folder-item__count">3</span>
+            </div>
+            <div class="folder-item">
+              <span class="folder-item__icon">📁</span> 产品
+              <span class="folder-item__count">3</span>
+            </div>
+            <div class="folder-item">
+              <span class="folder-item__icon">📁</span> 生活
+              <span class="folder-item__count">2</span>
+            </div>
+          </div>
+        </div>
+        <!-- Content Area -->
+        <div class="knowledge-content" id="knowledge-content">
+          <div class="knowledge-toolbar">
+            <span style="font-size:13px;color:var(--text-muted)">📁 全部知识 · 12 条</span>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button class="view-tab active" style="font-size:11px">卡片</button>
+              <button class="view-tab" style="font-size:11px">列表</button>
+            </div>
+          </div>
+          <div class="knowledge-list" id="knowledge-list">
+            <div class="knowledge-card">
+              <div class="knowledge-card__title">Transformer 注意力机制详解</div>
+              <div class="knowledge-card__snippet">Transformer 架构的核心是自注意力机制（Self-Attention），它允许模型在处理序列数据时，动态地关注输入序列中不同位置的相关信息...</div>
+              <div class="knowledge-card__meta">
+                <span class="source-icon">📄 文件上传</span>
+                <span class="tag-chip">ML</span>
+                <span class="tag-chip">NLP</span>
+                <span>6/12</span>
+              </div>
+            </div>
+            <div class="knowledge-card">
+              <div class="knowledge-card__title">GNN 图神经网络入门</div>
+              <div class="knowledge-card__snippet">图神经网络（Graph Neural Network）是一种直接作用于图结构数据的神经网络架构。它通过节点之间的消息传递来学习节点、边和图的表示...</div>
+              <div class="knowledge-card__meta">
+                <span class="source-icon">✏️ 手工录入</span>
+                <span class="tag-chip">ML</span>
+                <span class="tag-chip">GNN</span>
+                <span>6/10</span>
+              </div>
+            </div>
+            <div class="knowledge-card">
+              <div class="knowledge-card__title">Spring Boot 自动配置原理</div>
+              <div class="knowledge-card__snippet">Spring Boot 的自动配置通过 @EnableAutoConfiguration 注解触发，它使用 SpringFactoriesLoader 加载 META-INF/spring.factories 中的配置类...</div>
+              <div class="knowledge-card__meta">
+                <span class="source-icon">🔄 任务导入</span>
+                <span class="tag-chip">后端</span>
+                <span class="tag-chip">Spring</span>
+                <span>6/8</span>
+              </div>
+            </div>
+          </div>
+          <!-- Upload Zone (hidden by default) -->
+          <div class="upload-zone" id="upload-zone" style="display:none;">
+            <div class="upload-zone__icon">📤</div>
+            <div class="upload-zone__text">拖拽文件到此处上传，或点击选择文件</div>
+            <div class="upload-zone__hint">支持 PDF / DOCX / TXT / Markdown / HTML / CSV · 最大 20MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-------------- PAGE 4: AI CHAT -------------->
+    <div class="page" id="page-chat">
+      <div class="topbar">
+        <button class="topbar__back" onclick="switchPage('home')">← 返回主页</button>
+        <span class="topbar__title">AI 问答</span>
+        <div class="topbar__actions">
+          <button class="btn-ghost" onclick="resetChat()">+ 新对话</button>
+          <select class="model-select" id="modelSelect">
+            <option>DeepSeek R1 (深度推理)</option>
+            <option>GPT-4o</option>
+            <option>Claude Sonnet 4.6</option>
+            <option>DeepSeek V3</option>
+          </select>
+        </div>
+      </div>
+      <div class="chat-page">
+        <!-- Conversation Sidebar -->
+        <div class="chat-sidebar">
+          <div class="chat-sidebar__header">
+            <button class="btn-new-chat" onclick="resetChat()">＋ 新对话</button>
+          </div>
+          <div class="chat-conv-list">
+            <div class="chat-conv-item active">
+              <div class="chat-conv-item__title">GNN 模型架构讨论</div>
+              <div class="chat-conv-item__meta">今天 · 4 条消息</div>
+            </div>
+            <div class="chat-conv-item">
+              <div class="chat-conv-item__title">代码审查建议</div>
+              <div class="chat-conv-item__meta">昨天 · 8 条消息</div>
+            </div>
+            <div class="chat-conv-item">
+              <div class="chat-conv-item__title">Transformer vs GNN 对比</div>
+              <div class="chat-conv-item__meta">周三 · 6 条消息</div>
+            </div>
+          </div>
+        </div>
+        <!-- Chat Area -->
+        <div class="chat-main" id="chat-main-with-messages">
+          <div class="chat-main__header">
+            <span style="font-size:14px;font-weight:600">GNN 模型架构讨论</span>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <!-- User message -->
+            <div class="chat-msg chat-msg--user">
+              <div class="chat-msg__avatar">👤</div>
+              <div class="chat-msg__bubble">Transformer 和 GNN 在架构设计上有什么核心区别？各自适用什么场景？</div>
+            </div>
+            <!-- Assistant with reasoning -->
+            <div class="chat-msg chat-msg--assistant">
+              <div class="chat-msg__avatar">🤖</div>
+              <div>
+                <div class="chat-msg__bubble">
+                  <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">💭 深度推理已完成</div>
+                  Transformer 和 GNN 的核心区别在于它们处理的数据结构不同。Transformer 设计用于序列数据，核心是自注意力机制；而 GNN 设计用于图结构数据，核心是消息传递机制……
+                  <div class="source-tags">
+                    <span class="source-tag">📎 Transformer详解</span>
+                    <span class="source-tag">📎 GNN入门指南</span>
+                  </div>
+                </div>
+                <!-- Reasoning Block (collapsed by default) -->
+                <div class="reasoning-block" style="margin-top:8px;" id="reasoning-block">
+                  <div class="reasoning-block__header" onclick="toggleReasoning()">
+                    <span>💭</span> 深度推理过程
+                    <span style="margin-left:auto;font-size:10px;" id="reasoning-toggle">展开 ▼</span>
+                  </div>
+                  <div class="reasoning-block__body" id="reasoning-body" style="display:none;">
+                    1. 首先分析 Transformer 的核心组件：多头自注意力机制、前馈网络、层归一化、残差连接。关键洞察是自注意力计算所有位置之间的依赖关系，计算复杂度 O(n²)。<br><br>
+                    2. 然后分析 GNN 的核心：消息传递框架，每个节点聚合邻居信息来更新自身表示。可以处理任意拓扑结构的图数据。<br><br>
+                    3. 关键区别：Transformer 可以看作全连接图上的 GNN（每个 token 是一个节点，每个节点与所有其他节点相连）。而 GNN 处理稀疏图结构。<br><br>
+                    4. 适用场景：Transformer → NLP、时序预测、图像(ViT)；GNN → 社交网络分析、分子性质预测、推荐系统。
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Chat Input -->
+          <div class="chat-input-area">
+            <div class="chat-input-row">
+              <textarea id="chatInput" placeholder="输入问题，Enter 发送，Shift+Enter 换行..." rows="1" onkeydown="handleChatKey(event)"></textarea>
+              <button class="btn-send" onclick="sendMessage()">➤</button>
+            </div>
+            <div class="chat-input-actions">
+              <button class="toggle-btn" id="toggle-reasoning" onclick="toggleBtn(this)">💭 深度推理</button>
+              <button class="toggle-btn active" id="toggle-rag" onclick="toggleBtn(this)">📚 @知识库</button>
+            </div>
+          </div>
+        </div>
+        <!-- Empty State (hidden) -->
+        <div class="chat-empty" id="chat-empty-state" style="display:none;">
+          <div class="chat-empty__icon">💬</div>
+          <div class="chat-empty__title">开始新对话</div>
+          <div class="chat-empty__desc">基于知识库内容进行智能问答，支持深度推理和多模型切换</div>
+          <div class="suggestion-grid">
+            <div class="suggestion-card" onclick="quickAsk('总结知识库中关于机器学习的核心概念')">📚 总结知识库中关于机器学习的核心概念</div>
+            <div class="suggestion-card" onclick="quickAsk('Transformer 和 GNN 的区别是什么？')">🤔 Transformer 和 GNN 的区别是什么？</div>
+            <div class="suggestion-card" onclick="quickAsk('帮我梳理最近的待办任务')">📋 帮我梳理最近的待办任务</div>
+            <div class="suggestion-card" onclick="quickAsk('解释 Spring Boot 自动配置的原理')">⚙️ 解释 Spring Boot 自动配置的原理</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ====== Page Switching ======
+function switchPage(pageId) {
+  // Update pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + pageId);
+  if (target) target.classList.add('active');
+
+  // Update nav items
+  document.querySelectorAll('.page-nav__item').forEach(item => {
+    item.classList.remove('active');
+    if (item.dataset.page === pageId) item.classList.add('active');
+  });
+}
+
+// Nav sidebar click
+document.querySelectorAll('.page-nav__item').forEach(item => {
+  item.addEventListener('click', () => switchPage(item.dataset.page));
+});
+
+// ====== Task View Switch ======
+function switchTaskView(view, el) {
+  document.getElementById('kanban-view').style.display = view === 'kanban' ? 'flex' : 'none';
+  document.getElementById('list-view').style.display = view === 'list' ? 'flex' : 'none';
+  el.parentElement.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ====== Reasoning Toggle ======
+function toggleReasoning() {
+  const body = document.getElementById('reasoning-body');
+  const toggle = document.getElementById('reasoning-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    toggle.textContent = '收起 ▲';
+  } else {
+    body.style.display = 'none';
+    toggle.textContent = '展开 ▼';
+  }
+}
+
+// ====== Toggle Buttons ======
+function toggleBtn(btn) { btn.classList.toggle('active'); }
+
+// ====== Upload Zone ======
+function showUpload() {
+  const list = document.getElementById('knowledge-list');
+  const upload = document.getElementById('upload-zone');
+  list.style.display = list.style.display === 'none' ? 'flex' : 'none';
+  upload.style.display = upload.style.display === 'none' ? 'block' : 'none';
+}
+
+// ====== Chat ======
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Add user message
+  const container = document.getElementById('chat-messages');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-msg chat-msg--user';
+  userMsg.innerHTML = `<div class="chat-msg__avatar">👤</div><div class="chat-msg__bubble">${escapeHtml(text)}</div>`;
+  container.appendChild(userMsg);
+
+  // Add AI response placeholder (streaming simulation)
+  const aiMsg = document.createElement('div');
+  aiMsg.className = 'chat-msg chat-msg--assistant';
+  aiMsg.innerHTML = `<div class="chat-msg__avatar">🤖</div><div class="chat-msg__bubble cursor-blink">正在思考</div>`;
+  container.appendChild(aiMsg);
+
+  input.value = '';
+  container.scrollTop = container.scrollHeight;
+
+  // Simulate streaming
+  const response = '这是一个模拟的流式响应。在实际实现中，这里会通过 SSE（Server-Sent Events）从后端实时接收 AI 模型的逐字输出，包括推理过程和最终回答。';
+  let i = 0;
+  const bubble = aiMsg.querySelector('.chat-msg__bubble');
+  bubble.textContent = '';
+  const interval = setInterval(() => {
+    bubble.textContent += response[i];
+    container.scrollTop = container.scrollHeight;
+    i++;
+    if (i >= response.length) {
+      clearInterval(interval);
+      bubble.classList.remove('cursor-blink');
+    }
+  }, 50);
+}
+
+function handleChatKey(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+function resetChat() {
+  // Show empty state
+  document.getElementById('chat-messages').innerHTML = '';
+  const chatMain = document.getElementById('chat-main-with-messages');
+  const emptyState = document.getElementById('chat-empty-state');
+  chatMain.querySelector('.chat-messages').style.display = 'none';
+  chatMain.querySelector('.chat-input-area').style.display = 'none';
+  emptyState.style.display = 'flex';
+  document.getElementById('chat-messages').parentElement.style.display = 'flex';
+}
+
+function quickAsk(question) {
+  document.getElementById('chat-messages').parentElement.style.display = 'block';
+  document.querySelector('.chat-input-area').style.display = 'block';
+  document.getElementById('chat-empty-state').style.display = 'none';
+  document.getElementById('chatInput').value = question;
+  sendMessage();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Auto-expand textarea
+document.getElementById('chatInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+</script>
+</body>
+</html>

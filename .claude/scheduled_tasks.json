@@ -1,0 +1,35 @@
+{
+  "tasks": [
+    {
+      "id": "49d4189d",
+      "cron": "*/2 * * * *",
+      "prompt": "先读取 d:/project/superbox/.claude/team/focus.md 获取当前聚焦应用。然后检查 d:/project/superbox/test/issue/app/ 目录下的所有 *.md 文件，找出 frontmatter 中 status 为 \"submit\" 的 issue。优先处理 module 字段等于当前聚焦应用的 issue。如果有，请按照以下流程处理：\n1. 阅读 issue 内容，理解 bug 描述\n2. 在代码库中定位并修复该 bug\n3. 自测验证修复是否生效\n4. 自测通过后，将 issue 文件的 status 修改为 \"retest\"\n5. 简要汇报处理结果\n\n如果没有任何 status 为 \"submit\" 的 issue，无需回复。",
+      "createdAt": 1781399400249,
+      "lastFiredAt": 1781426777395,
+      "recurring": true,
+      "createdBySessionId": "3c6bfe6d-10da-46fa-95a1-b6752ff597e8",
+      "createdByPid": 5352,
+      "createdByProcStart": "639170244221258950"
+    },
+    {
+      "id": "ed390491",
+      "cron": "*/5 * * * *",
+      "prompt": "先读取 d:/project/superbox/.claude/team/focus.md 获取当前聚焦应用。然后 Monitor the task management test issue file at d:\\project\\superbox\\test\\issue\\app\\taskManage.md for status changes. \n\n1. Read the file and parse all issues\n2. For any issue with status \"retest\" (meaning the developer claims it's fixed):\n   a. Re-read the relevant source code files listed in the issue\n   b. Re-verify whether the fix has been properly applied\n   c. If the fix IS properly applied → update the issue status to \"fixed\"\n   d. If the fix is NOT applied or incomplete → update status back to \"submit\" and append an updated description noting what's still broken\n3. Report which issues were re-tested and their outcomes\n4. If no issues have \"retest\" status, simply note that monitoring is active and no retests are pending",
+      "createdAt": 1781399568719,
+      "lastFiredAt": 1781426693650,
+      "recurring": true,
+      "createdBySessionId": "ce3ed75a-7302-46d1-a6f0-6556161848b2",
+      "createdByPid": 3300
+    },
+    {
+      "id": "8eeda938",
+      "cron": "3-58/5 * * * *",
+      "prompt": "持续监控以下测试 issue 文件，检查是否有非 fixed 状态的 Issue（submit 或 retest）：\n\n**监控文件：**\n1. `test/issue/app/taskManager.md` — taskManager 模块\n2. `test/issue/app/tagManager.md` — tagManager 模块（文件可能尚未创建，不存在则跳过）\n\n**处理流程：**\n1. 逐一读取存在的文件，获取完整 Issue 列表\n2. 识别 status 为 `submit` 或 `retest` 的 Issue\n3. 按模块和前后端分派 agent：\n   - 后端 Issue（模块标注\"后端 - taskManager\"或\"后端 - tagManager\"等）→ 派 @backend-dev\n   - 前端 Issue（模块标注\"前端 - taskManager\"/\"前端 - tagManager\"/\"前端 - SpreadsheetView\"等）→ 派 @frontend-dev\n   - 全栈 Issue → 同时派 @frontend-dev + @backend-dev\n   - mini-app Issue → 派 @frontend-dev\n4. 修复完成后，将 Issue 状态更新为 `retest`（如当前已是 retest 则跳过）\n5. 如果所有 Issue 都是 fixed 状态，无需操作",
+      "createdAt": 1781406064486,
+      "lastFiredAt": 1781426676503,
+      "recurring": true,
+      "createdBySessionId": "b140644e-2df3-4dd0-90e3-abc0bf8e3441",
+      "createdByPid": 24492
+    }
+  ]
+}
