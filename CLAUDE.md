@@ -121,3 +121,34 @@
 4. 前端/后端实现 → 代码变更
 5. 测试工程师验证 → `test/issue/` 文件
 6. 运维工程师发布 → release-notes.md
+---
+
+## Git 分支与提交规范
+
+### 分支模型
+
+| 分支 | 用途 | 备注 |
+|------|------|------|
+| `master` | 生产就绪代码，每次 sprint 结束合并 + 打 tag | 不直接提交 |
+| `develop` | 当前 sprint 集成开发 | 日常开发基分支 |
+| `feature/<缩写>-<描述>` | 单个功能/修复分支 | 合并后删除 |
+| `hotfix/<缩写>-<描述>` | 生产紧急修复 | 合并到 master 和 develop |
+
+模块缩写：`tm`=taskManager、`tg`=tagManager、`kb`=knowledgeBase、`ai`=aiChat、`au`=auth、`infra`=infrastructure
+
+### Commit 格式
+
+```
+<type>(<scope>): <subject>
+
+type:  feat / fix / docs / refactor / style / test / chore
+scope: tm / tg / kb / ai / au / infra / team
+```
+
+### 日常工作流
+
+开发 → `git checkout -b feature/<scope>-<desc>` from develop → 提交 → 合并回 develop → push
+
+Sprint 发布 → `git checkout master && git merge develop && git tag -a v<version> && git push origin master --tags`
+
+**所有 AI agent 创建 commit 时必须遵循上述格式。**
