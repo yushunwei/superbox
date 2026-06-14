@@ -152,4 +152,3 @@ scope: tm / tg / kb / ai / au / infra / team
 Sprint 发布 → `git checkout master && git merge develop && git tag -a v<version> && git push origin master --tags`
 
 **所有 AI agent 创建 commit 时必须遵循上述格式。**
-<!-- test -->
