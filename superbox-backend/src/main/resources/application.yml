@@ -23,8 +23,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 50MB
+      max-file-size: 200MB
+      max-request-size: 500MB
 
 server:
   port: 8080
@@ -44,19 +44,14 @@ superbox:
   storage:
     root-path: ./storage
   ai:
-    default-provider: openai
+    default-provider: openai-compatible
     providers:
-      openai:
+      openai-compatible:
         api-key: ${OPENAI_API_KEY:}
         base-url: https://api.openai.com/v1
         chat-model: gpt-4o-mini
         embedding-model: text-embedding-3-small
-      deepseek:
-        api-key: ${DEEPSEEK_API_KEY:}
-        base-url: https://api.deepseek.com/v1
-        chat-model: deepseek-chat
-        reasoner-model: deepseek-reasoner
-      anthropic:
+      anthropic-compatible:
         api-key: ${ANTHROPIC_API_KEY:}
         base-url: https://api.anthropic.com
         chat-model: claude-sonnet-4-6
@@ -64,3 +59,8 @@ superbox:
         base-url: http://localhost:11434
         chat-model: qwen2.5
         embedding-model: nomic-embed-text
+  translate:
+    segment-max-chars: 2000
+    max-concurrent-segments: 8
+    context-window-size: 1
+    output-retention-days: 7

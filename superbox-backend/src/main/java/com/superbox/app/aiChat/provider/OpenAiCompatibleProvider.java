@@ -19,24 +19,36 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public class OpenAiProvider implements AiProvider {
+public class OpenAiCompatibleProvider implements AiProvider {
 
     private final AiConfig aiConfig;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public OpenAiProvider(AiConfig aiConfig) {
+    public OpenAiCompatibleProvider(AiConfig aiConfig) {
         this.aiConfig = aiConfig;
     }
 
     @Override
-    public String getProviderName() { return "openai"; }
+    public String getProviderName() { return "openai-compatible"; }
 
     @Override
     public void chatStream(String systemPrompt, List<ChatMessage> history, String model,
                            Consumer<ChatStreamEvent> onEvent) {
-        AiConfig.ProviderConfig cfg = aiConfig.getProviders().get("openai");
-        String apiKey = cfg.getApiKey();
-        String url = cfg.getBaseUrl() + "/chat/completions";
+        doChatStream(systemPrompt, history, model, onEvent, null, null);
+    }
+
+    @Override
+    public void chatStreamWithConfig(String systemPrompt, List<ChatMessage> history, String model,
+                              Consumer<ChatStreamEvent> onEvent, String apiKeyOverride, String baseUrlOverride) {
+        doChatStream(systemPrompt, history, model, onEvent, apiKeyOverride, baseUrlOverride);
+    }
+
+    private void doChatStream(String systemPrompt, List<ChatMessage> history, String model,
+                              Consumer<ChatStreamEvent> onEvent, String apiKeyOverride, String baseUrlOverride) {
+        AiConfig.ProviderConfig cfg = aiConfig.getProviders().get("openai-compatible");
+        String apiKey = apiKeyOverride != null && !apiKeyOverride.isBlank() ? apiKeyOverride : cfg.getApiKey();
+        String baseUrl = baseUrlOverride != null && !baseUrlOverride.isBlank() ? baseUrlOverride : cfg.getBaseUrl();
+        String url = baseUrl + "/chat/completions";
         if (model == null || model.isEmpty()) model = cfg.getChatModel();
 
         try {
@@ -95,7 +107,7 @@ public class OpenAiProvider implements AiProvider {
                         reasoningBuf.length() + answerBuf.length()));
             }
         } catch (Exception e) {
-            log.error("OpenAI stream error", e);
+            log.error("OpenAI-compatible stream error", e);
             onEvent.accept(new ChatStreamEvent("error", e.getMessage(), null, null, null));
         }
     }

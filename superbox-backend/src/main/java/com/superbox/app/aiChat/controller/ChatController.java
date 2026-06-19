@@ -3,9 +3,10 @@ package com.superbox.app.aiChat.controller;
 import com.superbox.app.aiChat.entity.ChatMessage;
 import com.superbox.app.aiChat.entity.Conversation;
 import com.superbox.app.aiChat.service.ChatService;
-import com.superbox.app.aiChat.service.ModelRouterService;
 import com.superbox.common.Result;
+import com.superbox.common.UserContext;
 import com.superbox.config.RateLimiterService;
+import com.superbox.app.modelManager.service.ModelManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +25,7 @@ import java.util.Map;
 public class ChatController {
 
     private final ChatService chatService;
-    private final ModelRouterService modelRouter;
+    private final ModelManagerService modelManagerService;
     private final RateLimiterService rateLimiter;
 
     @GetMapping("/conversations")
@@ -66,7 +69,18 @@ public class ChatController {
     }
 
     @GetMapping("/models")
-    public Result<List<String>> getModels() {
-        return Result.ok(modelRouter.availableModels());
+    public Result<List<Map<String, Object>>> getModels() {
+        Long userId = UserContext.getUserId();
+        var models = new ArrayList<Map<String, Object>>();
+        for (var config : modelManagerService.getUserActiveModels(userId)) {
+            var m = new LinkedHashMap<String, Object>();
+            m.put("model", config.getModelName());
+            m.put("name", config.getDisplayName() != null ? config.getDisplayName() : config.getModelName());
+            m.put("provider", config.getProviderName());
+            m.put("isDefault", Boolean.TRUE.equals(config.getIsDefault()));
+            m.put("available", true);
+            models.add(m);
+        }
+        return Result.ok(models);
     }
 }

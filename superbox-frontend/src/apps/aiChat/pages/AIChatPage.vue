@@ -10,15 +10,20 @@ const store = useChatStore()
 const messageText = ref('')
 const reasoningExpanded = ref<Record<number, boolean>>({})
 const messagesContainer = ref<HTMLElement | null>(null)
+interface ModelItem { model: string; name: string; provider: string; isDefault: boolean; available: boolean }
 const modelsLoading = ref(false)
-const availableModels = ref<string[]>([])
+const availableModels = ref<ModelItem[]>([])
 
 onMounted(async () => {
   await store.fetchConversations()
   try {
     const res = await import('@/api/modules/aiChat').then(m => m.chatApi.getModels())
-    availableModels.value = res.data
-  } catch { /* use defaults */ }
+    availableModels.value = (res as any).data
+    if (availableModels.value.length > 0 && !store.selectedModel) {
+      const def = availableModels.value.find(m => m.isDefault)
+      store.selectedModel = def?.model || availableModels.value[0].model
+    }
+  } catch { /* no models configured */ }
 })
 
 watch(() => store.streamingAnswer, scrollToBottom)
@@ -67,14 +72,6 @@ function toggleReasoning(msgId: number) {
   reasoningExpanded.value[msgId] = !reasoningExpanded.value[msgId]
 }
 
-function getModelLabel(m: string) {
-  const map: Record<string, string> = {
-    'gpt-4o': 'GPT-4o', 'gpt-4o-mini': 'GPT-4o Mini',
-    'deepseek-chat': 'DeepSeek V3', 'deepseek-reasoner': 'DeepSeek R1',
-    'claude-sonnet-4-6': 'Claude Sonnet', 'qwen2.5': 'Qwen 2.5',
-  }
-  return map[m] || m
-}
 </script>
 
 <template>
@@ -104,8 +101,9 @@ function getModelLabel(m: string) {
 
       <!-- Model selector -->
       <div class="chat-sidebar__footer">
-        <select v-model="store.selectedModel" class="model-select">
-          <option v-for="m in availableModels" :key="m" :value="m">{{ getModelLabel(m) }}</option>
+        <select v-model="store.selectedModel" class="model-select" :disabled="availableModels.length === 0">
+          <option v-if="availableModels.length === 0" value="">请先配置模型</option>
+          <option v-for="m in availableModels" :key="m.model" :value="m.model">{{ m.name }}{{ m.isDefault ? ' (默认)' : '' }}</option>
         </select>
       </div>
     </aside>

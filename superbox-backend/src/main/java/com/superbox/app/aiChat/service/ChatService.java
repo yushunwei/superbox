@@ -9,7 +9,10 @@ import com.superbox.app.aiChat.mapper.ConversationMapper;
 import com.superbox.app.knowledgeBase.mapper.KnowledgeChunkMapper;
 import com.superbox.app.knowledgeBase.service.ChunkingService;
 import com.superbox.app.knowledgeBase.service.EmbeddingService;
+import com.superbox.app.modelManager.entity.ModelConfig;
+import com.superbox.app.modelManager.service.ModelManagerService;
 import com.superbox.common.BusinessException;
+import com.superbox.common.UserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ public class ChatService {
     private final ConversationMapper convMapper;
     private final ChatMessageMapper msgMapper;
     private final ModelRouterService modelRouter;
+    private final ModelManagerService modelManagerService;
     private final KnowledgeChunkMapper chunkMapper;
     private final EmbeddingService embeddingService;
     private final ChunkingService chunkingService;
@@ -55,7 +59,14 @@ public class ChatService {
     public Conversation createConversation(String title, String model) {
         Conversation conv = new Conversation();
         conv.setTitle(title != null ? title : "新对话");
-        conv.setModel(model != null ? model : "gpt-4o-mini");
+        if (model != null && !model.isBlank()) {
+            conv.setModel(model);
+        } else {
+            // Use user's default model from ModelManager
+            Long userId = UserContext.getUserId();
+            ModelConfig defaultModel = modelManagerService.getUserDefaultModel(userId);
+            conv.setModel(defaultModel != null ? defaultModel.getModelName() : null);
+        }
         conv.setMessageCount(0);
         convMapper.insert(conv);
         return conv;
@@ -89,8 +100,20 @@ public class ChatService {
                 }
 
                 String actualModel = model != null ? model : conv.getModel();
-                if (reasoningEnabled && actualModel.equals("deepseek-chat")) {
-                    actualModel = "deepseek-reasoner";
+                if (actualModel == null || actualModel.isBlank()) {
+                    sendEvent(emitter, new ChatStreamEvent("error", "请先在模型管理中配置模型", null, null, null));
+                    emitter.complete();
+                    return;
+                }
+
+                // Look up user's ModelConfig for apiKey/baseUrl overrides
+                Long userId = UserContext.getUserId();
+                ModelConfig userModel = null;
+                for (ModelConfig c : modelManagerService.getUserActiveModels(userId)) {
+                    if (actualModel.equals(c.getModelName())) {
+                        userModel = c;
+                        break;
+                    }
                 }
 
                 ChatMessage userMsg = new ChatMessage();
@@ -106,8 +129,10 @@ public class ChatService {
                 StringBuilder reasoningBuf = new StringBuilder();
                 StringBuilder answerBuf = new StringBuilder();
 
-                var provider = modelRouter.route(actualModel);
-                provider.chatStream(systemPrompt, history, actualModel, event -> {
+                var provider = userModel != null ? modelRouter.route(userModel) : modelRouter.routeByModelName(actualModel);
+                String apiKey = userModel != null ? userModel.getApiKey() : null;
+                String baseUrl = userModel != null ? userModel.getBaseUrl() : null;
+                provider.chatStreamWithConfig(systemPrompt, history, actualModel, event -> {
                     try {
                         if ("reasoning".equals(event.getType())) {
                             reasoningBuf.append(event.getDelta() != null ? event.getDelta() : "");
@@ -118,7 +143,7 @@ public class ChatService {
                     } catch (IOException e) {
                         log.error("SSE send error", e);
                     }
-                });
+                }, apiKey, baseUrl);
 
                 ChatMessage assistantMsg = new ChatMessage();
                 assistantMsg.setConversationId(conversationId);

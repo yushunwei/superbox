@@ -9,7 +9,7 @@ export const useChatStore = defineStore('aiChat', () => {
   const streaming = ref(false)
   const reasoningEnabled = ref(false)
   const ragEnabled = ref(true)
-  const selectedModel = ref('gpt-4o-mini')
+  const selectedModel = ref('')
   const abortController = ref<AbortController | null>(null)
   const streamingReasoning = ref('')
   const streamingAnswer = ref('')

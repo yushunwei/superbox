@@ -84,6 +84,65 @@ const router = createRouter({
           component: () => import('@/apps/tagManager/pages/TagManagerPage.vue'),
           meta: { title: '标签管理' },
         },
+        // Model Manager
+        {
+          path: 'model-manager',
+          name: 'ModelManager',
+          component: () => import('@/apps/modelManager/pages/ModelManagerPage.vue'),
+          meta: { title: 'AI 模型管理' },
+        },
+        // AI Translate
+        {
+          path: 'ai-translate',
+          name: 'AiTranslate',
+          component: () => import('@/apps/aiTranslate/pages/TranslatePage.vue'),
+          meta: { title: 'AI 智能翻译' },
+          redirect: '/app/ai-translate/text',
+          children: [
+            {
+              path: 'text',
+              name: 'AiTranslateText',
+              component: () => import('@/apps/aiTranslate/pages/TextTranslate.vue'),
+              meta: { title: '文本翻译' },
+            },
+            {
+              path: 'document',
+              name: 'AiTranslateDocument',
+              component: () => import('@/apps/aiTranslate/pages/DocumentTranslate.vue'),
+              meta: { title: '文档翻译' },
+            },
+            {
+              path: 'tasks',
+              name: 'AiTranslateTasks',
+              component: () => import('@/apps/aiTranslate/pages/TaskList.vue'),
+              meta: { title: '翻译任务' },
+            },
+            {
+              path: 'glossary',
+              name: 'AiTranslateGlossary',
+              component: () => import('@/apps/aiTranslate/pages/GlossaryManager.vue'),
+              meta: { title: '术语表' },
+            },
+            {
+              path: 'prompts',
+              name: 'AiTranslatePrompts',
+              component: () => import('@/apps/aiTranslate/pages/PromptTemplateManager.vue'),
+              meta: { title: '提示词模板' },
+            },
+            {
+              path: 'roles',
+              name: 'AiTranslateRoles',
+              component: () => import('@/apps/aiTranslate/pages/RoleSettings.vue'),
+              meta: { title: '角色设定' },
+            },
+            {
+              path: 'settings',
+              name: 'AiTranslateSettings',
+              component: () => import('@/apps/aiTranslate/pages/TranslateSettings.vue'),
+              meta: { title: '翻译设置' },
+            },
+          ],
+        },
       ],
     },
     {

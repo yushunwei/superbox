@@ -53,7 +53,7 @@ export const chatApi = {
     apiClient.get<{ data: ChatMessage[] }>(`/ai-chat/conversations/${conversationId}/messages`),
 
   getModels: () =>
-    apiClient.get<{ data: string[] }>('/ai-chat/models'),
+    apiClient.get<{ data: { model: string; name: string; provider: string; isDefault: boolean; available: boolean }[] }>('/ai-chat/models'),
 }
 
 export function streamChat(

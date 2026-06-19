@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { List, Collection, ChatDotRound, PriceTag } from '@element-plus/icons-vue'
+import { List, Collection, ChatDotRound, PriceTag, Document, Setting } from '@element-plus/icons-vue'
 import { apps, configApps } from '@/apps'
 import { useUserStore } from '@/stores/modules/user'
 
-const iconMap: Record<string, any> = { List, Collection, ChatDotRound, PriceTag }
+const iconMap: Record<string, any> = { List, Collection, ChatDotRound, PriceTag, Document, Setting }
 
 const { t } = useI18n()
 const router = useRouter()
@@ -187,6 +187,10 @@ function goTo(route: string) {
 .app-card--tagManager .app-card__icon {
   background: #fff7ed;
   color: #f97316;
+}
+.app-card--aiTranslate .app-card__icon {
+  background: #f0f9ff;
+  color: #0ea5e9;
 }
 
 .app-card__info {
